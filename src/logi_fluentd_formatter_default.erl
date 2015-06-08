@@ -53,9 +53,9 @@ format(_Formatter, Location, MsgInfo, Format, Args) ->
          {timestamp, format_timestamp(logi_msg_info:get_timestamp(MsgInfo))},
          {message, abbrev(iolist_to_binary(re:replace(io_lib:format(Format, Args), "\\s+", " ", [global])),
                           ?MAX_LOG_SIZE, <<"...">>)} |
-         [{K, to_binary(V)} || {K, V} <- logi_msg_info:get_headers(MsgInfo)]
+         [{K, to_binary_or_number(V)} || {K, V} <- logi_msg_info:get_headers(MsgInfo)]
         ],
-    <<(jsone:encode(Params))/binary, $\n>>.
+    <<(jsone:encode(Params, [{float_format, [{decimals, 4}, compact]}]))/binary, $\n>>.
 
 %%------------------------------------------------------------------------------------------------------------------------
 %% Internal Functions
@@ -64,6 +64,12 @@ format(_Formatter, Location, MsgInfo, Format, Args) ->
 -spec format_timestamp(erlang:timestamp()) -> non_neg_integer().
 format_timestamp(Timestamp) ->
     calendar:datetime_to_gregorian_seconds(calendar:now_to_universal_time(Timestamp)).
+
+-spec to_binary_or_number(term()) -> binary()|number().
+to_binary_or_number(X) when is_number(X) ->
+    X;
+to_binary_or_number(X) ->
+    to_binary(X).
 
 -spec to_binary(term()) -> binary().
 to_binary(X) ->
