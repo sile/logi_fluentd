@@ -1,14 +1,15 @@
 %% vim: set ft=erlang : -*- erlang -*-
 {application, logi_fluentd,
  [
-  {description, "Fluentd backend for logi"},
+  {description, "Fluentd sink for logi"},
   {vsn, git},
-  {registered, [logi_fluentd_sup]},
+  {registered, [logi_fluentd_sup, logi_fluentd_writer_tcp_sup]},
   {applications, [
                   kernel,
                   stdlib,
                   logi,
-                  jsone % msgpack
+                  logi_stdlib,
+                  jsone
                  ]},
   {mod, { logi_fluentd_app, []}},
   {env, []}

@@ -1,9 +1,12 @@
 logi_fluentd
 ============
 
-Fluentd出力用の[logi](https://github.com/sile/logi)バックエンド
-
-使い方
-------
-
-TODO
+```
+<source>
+tag default
+type tcp
+format json
+port 9880
+time_key timestamp
+</source>
+```
