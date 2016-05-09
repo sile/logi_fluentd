@@ -17,7 +17,7 @@ Add following code to your `rebar.config` and `.app.src` file:
  ]}.
 
 %% In src/${YOUR_APP}.app.src
-{application, ${YOUR+APP},
+{application, ${YOUR_APP},
   [
     {applications,
       [
