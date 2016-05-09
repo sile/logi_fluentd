@@ -10,6 +10,17 @@ Fluentd Sink for the "in_tcp" Input Plugin.
 
 Copyright (c) 2015-2016 Takeru Ohta <phjgt308@gmail.com>
 
+<a name="description"></a>
+
+## Description ##
+
+
+### <a name="NOTE">NOTE</a> ###
+
+The sink has no overload protections,
+so it is recommended to use it together with (for example) `logi_slink_flow_limiter`
+of [logi_stdlib](https://github.com/sile/logi_stdlib) in a production environment.
+
 <a name="types"></a>
 
 ## Data Types ##

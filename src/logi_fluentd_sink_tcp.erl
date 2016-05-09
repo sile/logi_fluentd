@@ -1,6 +1,13 @@
 %% @copyright 2015-2016 Takeru Ohta <phjgt308@gmail.com>
 %%
 %% @doc Fluentd Sink for the "in_tcp" Input Plugin
+%%
+%% == NOTE ==
+%%
+%% The sink has no overload protections,
+%% so it is recommended to use it together with (for example) `logi_slink_flow_limiter'
+%% of [logi_stdlib](https://github.com/sile/logi_stdlib) in a production environment.
+%%
 %% @end
 -module(logi_fluentd_sink_tcp).
 
