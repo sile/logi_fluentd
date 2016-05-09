@@ -43,6 +43,7 @@ format(Context, Format, Data, BaseLayout) ->
          {process, to_binary(logi_location:get_process(Location))},
          {application, logi_location:get_application(Location)},
          {module, logi_location:get_module(Location)},
+         {function, logi_location:get_function(Location)},
          {line, logi_location:get_line(Location)},
          {timestamp, format_timestamp(logi_context:get_timestamp(Context))},
          {message, iolist_to_binary(logi_layout:format(Context, Format, Data, BaseLayout))}
