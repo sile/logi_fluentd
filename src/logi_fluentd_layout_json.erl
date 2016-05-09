@@ -1,14 +1,15 @@
-%% @copyright 2015 Takeru Ohta <phjgt308@gmail.com>
+%% @copyright 2015-2016 Takeru Ohta <phjgt308@gmail.com>
 %%
-%% @doc TODO
--module(logi_fluentd_layout_json_default).
+%% @doc A logi_layout implementation which formats log messages as JSON string
+%% @end
+-module(logi_fluentd_layout_json).
 
 -behaviour(logi_layout).
 
 %%----------------------------------------------------------------------------------------------------------------------
 %% Exported API
 %%----------------------------------------------------------------------------------------------------------------------
--export([new/1]).
+-export([new/0, new/1]).
 
 %%----------------------------------------------------------------------------------------------------------------------
 %% 'logi_layout' Callback API
@@ -18,6 +19,11 @@
 %%----------------------------------------------------------------------------------------------------------------------
 %% Exported Functions
 %%----------------------------------------------------------------------------------------------------------------------
+%% @equiv new(logi_layout_io_lib_format:new())
+-spec new() -> logi_layout:layout().
+new() ->
+    new(logi_layout_io_lib_format:new()).
+
 %% @doc Creates a new layout instance
 -spec new(logi_layout:layout()) -> logi_layout:layout().
 new(BaseLayout) ->
@@ -48,9 +54,8 @@ format(Context, Format, Data, BaseLayout) ->
 %% Internal Functions
 %%----------------------------------------------------------------------------------------------------------------------
 -spec format_timestamp(erlang:timestamp()) -> non_neg_integer().
-format_timestamp(Timestamp) ->
-    Base = calendar:datetime_to_gregorian_seconds({{1970,1,1}, {0,0,0}}),
-    calendar:datetime_to_gregorian_seconds(calendar:now_to_universal_time(Timestamp)) - Base.
+format_timestamp({Mega, Sec, _}) ->
+    Mega * 1000 * 1000 + Sec.
 
 -spec to_binary(term()) -> binary().
 to_binary(X) ->

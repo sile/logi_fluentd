@@ -1,7 +1,8 @@
-%% @copyright 2015 Takeru Ohta <phjgt308@gmail.com>
+%% @copyright 2015-2016 Takeru Ohta <phjgt308@gmail.com>
 %%
 %% @doc Supervisor Module
 %% @private
+%% @end
 -module(logi_fluentd_sup).
 
 -behaviour(supervisor).
@@ -29,10 +30,4 @@ start_link() ->
 %%----------------------------------------------------------------------------------------------------------------------
 %% @private
 init([]) ->
-    Supervisor =
-        fun (Module) -> {Module, {Module, start_link, []}, permanent, 5000, supervisor, [Module]} end,
-    Children =
-        [
-         Supervisor(logi_fluentd_writer_tcp_sup)
-        ],
-    {ok, { {one_for_one, 5, 10}, Children} }.
+    {ok, { #{}, [] }}.

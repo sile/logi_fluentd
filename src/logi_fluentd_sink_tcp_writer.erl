@@ -1,18 +1,24 @@
-%% @copyright 2015 Takeru Ohta <phjgt308@gmail.com>
+%% @copyright 2015-2016 Takeru Ohta <phjgt308@gmail.com>
 %%
-%% @doc TODO
+%% @doc A sink process and writer for logi_fluentd_sink_tcp module
 %% @private
--module(logi_fluentd_writer_tcp).
+%% @end
+-module(logi_fluentd_sink_tcp_writer).
 
+-behaviour(logi_sink_writer).
 -behaviour(gen_server).
 
 %%----------------------------------------------------------------------------------------------------------------------
 %% Exported API
 %%----------------------------------------------------------------------------------------------------------------------
--export([start_link/2]).
--export([write/2]).
+-export([start_link/1]).
 
 -export_type([start_arg/0]).
+
+%%----------------------------------------------------------------------------------------------------------------------
+%% 'logi_sink_writer' Callback API
+%%----------------------------------------------------------------------------------------------------------------------
+-export([write/4, get_writee/1]).
 
 %%----------------------------------------------------------------------------------------------------------------------
 %% 'gen_server' Callback API
@@ -23,34 +29,41 @@
 %% Macros & Records & Types
 %%----------------------------------------------------------------------------------------------------------------------
 -define(STATE, ?MODULE).
-
 -record(?STATE,
         {
           socket :: inet:socket()
         }).
 
--type start_arg() :: {logi_fluentd_sink_tcp:address(), inet:port_number(), logi:logger(), timeout(), [gen_tcp:connect_option()]}.
+-type start_arg() :: {logi:logger(), logi_layout:layout(), logi_fluentd_sink_tcp:address(),
+                      inet:port_number(), timeout(), [gen_tcp:connect_option()]}.
 
 %%----------------------------------------------------------------------------------------------------------------------
 %% Exported Functions
 %%----------------------------------------------------------------------------------------------------------------------
 %% @doc Starts a new fluentd writer
--spec start_link(logi_fluentd_sink_tcp:writer_id(), start_arg()) -> {ok, pid()} | {error, Reason::term()}.
-start_link(WriterId, Arg) ->
-    gen_server:start_link({local, WriterId}, ?MODULE, [WriterId, Arg], []).
+-spec start_link(start_arg()) -> {ok, pid()} | {error, Reason::term()}.
+start_link(Arg) ->
+    gen_server:start_link(?MODULE, Arg, []).
 
-%% @doc Writes a message
--spec write(logi_fluentd_sink_tcp:writer_id(), iodata()) -> ok.
-write(WriterId, Message) ->
-    gen_server:cast(WriterId, {write, Message}).
+%%----------------------------------------------------------------------------------------------------------------------
+%% 'logi_sink_writer' Callback Functions
+%%----------------------------------------------------------------------------------------------------------------------
+%% @private
+write(Context, Format, Data, {Pid, Layout}) ->
+    FormattedData = logi_layout:format(Context, Format, Data, Layout),
+    ok = gen_server:cast(Pid, {write, FormattedData}),
+    FormattedData.
+
+%% @private
+get_writee({Pid, _}) ->
+    Pid.
 
 %%----------------------------------------------------------------------------------------------------------------------
 %% 'gen_server' Callback Functions
 %%----------------------------------------------------------------------------------------------------------------------
 %% @private
-init([WriterId, {Address, Port, Logger, ConnectTimeout, ConnectOptions}]) ->
+init({Logger, Layout, Address, Port, ConnectTimeout, ConnectOptions}) ->
     _ = logi:save_as_default(Logger),
-    _ = logi:set_headers(#{id => WriterId}),
     case gen_tcp:connect(Address, Port, ConnectOptions, ConnectTimeout) of
         {error, Reason} ->
             _ = logi:critical("Can't connect to the fluentd: address=~p, port=~p, reason=~p",
@@ -62,6 +75,7 @@ init([WriterId, {Address, Port, Logger, ConnectTimeout, ConnectOptions}]) ->
                     socket = Socket
                    },
             _ = logi:info("Started: address=~p, port=~p, socket=~p", [Address, Port, Socket]),
+            ok = logi_sink_proc:send_writer_to_parent(logi_sink_writer:new(?MODULE, {self(), Layout})),
             {ok, State}
     end.
 
